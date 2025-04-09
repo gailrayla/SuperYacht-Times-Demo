@@ -3,14 +3,18 @@ import { useState } from "react";
 import YachtDetailModal from "../components/yacht-detail-modal";
 import { fetchYachts } from "../lib/utils/fetchYachts";
 
-const accessToken = "your_access_token_here";
-
 export default function YachtSearch() {
   const [searchTerm, setSearchTerm] = useState("");
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [selectedYacht, setSelectedYacht] = useState<any | null>(null);
   const [isModalOpen, setModalOpen] = useState(false);
+
+  const accessToken = localStorage.getItem("access_token");
+  if (!accessToken) {
+    console.error("Access token is missing");
+    return null;
+  }
 
   const handleSearch = async () => {
     if (!searchTerm.trim()) return;
