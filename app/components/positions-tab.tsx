@@ -30,28 +30,34 @@ const PositionsTab = ({
         onChange={(e) => setSearchQuery(e.target.value)}
         className="mb-4 p-2 rounded-md border"
       />
-      <ul className="space-y-4">
-        {filteredPositions.length > 0 ? (
-          filteredPositions.map((position, idx) => (
-            <li
-              key={position.id || idx}
-              className="p-4 border rounded-lg shadow-lg hover:bg-gray-100 transition-all"
-            >
-              <p>
-                <strong>Date:</strong> {position.date_time}
-              </p>
-              <p>
-                <strong>Location:</strong> {position.lat}, {position.lon}
-              </p>
-              <p>
-                <strong>Notes:</strong> {position.notes}
-              </p>
-            </li>
-          ))
-        ) : (
-          <p>No positions available</p>
-        )}
-      </ul>
+
+      {/* Container for positions list */}
+      <div className="overflow-y-auto max-h-96">
+        {" "}
+        {/* Scrollable container */}
+        <ul className="space-y-4">
+          {filteredPositions.length > 0 ? (
+            filteredPositions.map((position, idx) => (
+              <li
+                key={position.id || idx}
+                className="p-4 border rounded-lg shadow-lg hover:bg-gray-100 transition-all"
+              >
+                <p>
+                  <strong>Date:</strong> {position.date_time}
+                </p>
+                <p>
+                  <strong>Location:</strong> {position.lat}, {position.lon}
+                </p>
+                <p>
+                  <strong>Notes:</strong> {position.notes}
+                </p>
+              </li>
+            ))
+          ) : (
+            <p>No positions available</p>
+          )}
+        </ul>
+      </div>
     </div>
   );
 };

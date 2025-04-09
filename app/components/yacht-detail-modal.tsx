@@ -12,27 +12,68 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import PositionsTab from "./positions-tab";
 import MapTab from "./map-tab";
 
-const YachtDetailModal = ({ isOpen, onClose, yacht }: any) => {
+interface Yacht {
+  yacht_like_id: number;
+  name: string;
+  previous_names: string[];
+  build_year: number;
+  length_overall: number;
+  builder_name: string;
+}
+
+interface YachtDetailModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  yacht: Yacht | null;
+}
+
+const YachtDetailModal: React.FC<YachtDetailModalProps> = ({
+  isOpen,
+  onClose,
+  yacht,
+}) => {
   const [positions, setPositions] = useState<any[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
   const [searchQuery, setSearchQuery] = useState<string>("");
 
   useEffect(() => {
     if (yacht?.yacht_like_id) {
       const fetchPositions = async () => {
-        const response = await fetch(
-          `https://api0.superyachtapi.com/api/positions?yacht_like_id=${yacht.yacht_like_id}`,
-          {
-            method: "GET",
-            headers: {
-              "Content-Type": "application/json",
-              Accept: "application/json",
-              Authorization: `Bearer your_access_token_here`,
-            },
+        const token = localStorage.getItem("access_token");
+
+        if (!token) {
+          console.error("Access token not found.");
+          setLoading(false);
+          return;
+        }
+
+        try {
+          const response = await fetch(
+            `https://api0.superyachtapi.com/api/positions?yacht_like_id=${yacht.yacht_like_id}`,
+            {
+              method: "GET",
+              headers: {
+                "Content-Type": "application/json",
+                Accept: "application/json",
+                Authorization: `Bearer ${token}`,
+              },
+            }
+          );
+
+          if (!response.ok) {
+            const errorData = await response.json();
+            console.error("Error fetching positions:", errorData);
+            throw new Error(`Error: ${errorData.message}`);
           }
-        );
-        const data = await response.json();
-        console.log("Fetched positions:", data); // Add this log
-        setPositions(data);
+
+          const data = await response.json();
+          console.log("Fetched positions:", data);
+          setPositions(data.positions || []);
+          setLoading(false);
+        } catch (error) {
+          console.error("Error:", error);
+          setLoading(false);
+        }
       };
 
       fetchPositions();
@@ -95,15 +136,26 @@ const YachtDetailModal = ({ isOpen, onClose, yacht }: any) => {
           </TabsContent>
 
           <TabsContent value="positions">
-            <PositionsTab
-              positions={positions}
-              searchQuery={searchQuery}
-              setSearchQuery={setSearchQuery}
-            />
+            {loading ? (
+              <p>Loading positions...</p>
+            ) : (
+              <PositionsTab
+                positions={positions}
+                searchQuery={searchQuery}
+                setSearchQuery={setSearchQuery}
+              />
+            )}
           </TabsContent>
 
           <TabsContent value="map">
-            <MapTab positions={positions} />
+            {loading ? (
+              <p>Loading map...</p>
+            ) : (
+              <MapTab
+                yacht_like_id={yacht.yacht_like_id}
+                positions={positions}
+              />
+            )}
           </TabsContent>
         </Tabs>
 
