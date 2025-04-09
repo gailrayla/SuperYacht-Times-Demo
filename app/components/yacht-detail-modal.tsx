@@ -2,15 +2,15 @@ import React, { useState, useEffect } from "react";
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
+  DialogDescription,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import PositionsTab from "./positions-tab";
 import MapTab from "./map-tab";
+import AddPositionModal from "./add-position-modal"; // Import the modal for adding new positions
 
 interface Yacht {
   yacht_like_id: number;
@@ -35,6 +35,7 @@ const YachtDetailModal: React.FC<YachtDetailModalProps> = ({
   const [positions, setPositions] = useState<any[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [searchQuery, setSearchQuery] = useState<string>("");
+  const [isAddPositionModalOpen, setIsAddPositionModalOpen] = useState(false);
 
   useEffect(() => {
     if (yacht?.yacht_like_id) {
@@ -79,6 +80,43 @@ const YachtDetailModal: React.FC<YachtDetailModalProps> = ({
       fetchPositions();
     }
   }, [yacht]);
+
+  const handlePositionAdded = () => {
+    // Callback to refresh the positions list after adding a new position
+    if (yacht?.yacht_like_id) {
+      const fetchPositions = async () => {
+        const token = localStorage.getItem("access_token");
+        if (!token) {
+          console.error("Access token not found.");
+          return;
+        }
+        try {
+          const response = await fetch(
+            `https://api0.superyachtapi.com/api/positions?yacht_like_id=${yacht.yacht_like_id}`,
+            {
+              method: "GET",
+              headers: {
+                "Content-Type": "application/json",
+                Accept: "application/json",
+                Authorization: `Bearer ${token}`,
+              },
+            }
+          );
+          if (!response.ok) {
+            const errorData = await response.json();
+            console.error("Error fetching positions:", errorData);
+            throw new Error(`Error: ${errorData.message}`);
+          }
+
+          const data = await response.json();
+          setPositions(data.positions || []);
+        } catch (error) {
+          console.error("Error fetching positions after adding:", error);
+        }
+      };
+      fetchPositions();
+    }
+  };
 
   if (!yacht) return null;
 
@@ -139,6 +177,12 @@ const YachtDetailModal: React.FC<YachtDetailModalProps> = ({
                 setSearchQuery={setSearchQuery}
               />
             )}
+            <Button
+              onClick={() => setIsAddPositionModalOpen(true)}
+              className="mt-4"
+            >
+              Add Position
+            </Button>
           </TabsContent>
 
           <TabsContent value="map">
@@ -157,6 +201,12 @@ const YachtDetailModal: React.FC<YachtDetailModalProps> = ({
           Close
         </Button>
       </DialogContent>
+      <AddPositionModal
+        isOpen={isAddPositionModalOpen}
+        onClose={() => setIsAddPositionModalOpen(false)}
+        yacht_like_id={yacht.yacht_like_id}
+        onPositionAdded={handlePositionAdded}
+      />
     </Dialog>
   );
 };
