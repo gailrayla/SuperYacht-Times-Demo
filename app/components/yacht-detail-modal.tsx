@@ -84,12 +84,6 @@ const YachtDetailModal: React.FC<YachtDetailModalProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogTrigger asChild>
-        <Button variant="default" className="mt-4 w-full">
-          View Details
-        </Button>
-      </DialogTrigger>
-
       <DialogContent>
         <DialogHeader>
           <DialogTitle>{yacht.name}</DialogTitle>
