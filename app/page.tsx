@@ -3,10 +3,10 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
-const CLIENT_ID = "MsdFcFDwweoUf5XgIKIApO6VZgkQ6omLujLV7f3zM5o";
-const REDIRECT_URI = "http://localhost:3000";
+const CLIENT_ID = process.env.NEXT_PUBLIC_CLIENT_ID!;
+const REDIRECT_URI = process.env.NEXT_PUBLIC_REDIRECT_URI!;
 const OAUTH_PARAMS = {
-  tokenEndpoint: "https://www.superyachttimes.com/oauth/token",
+  tokenEndpoint: process.env.NEXT_PUBLIC_OAUTH_TOKEN_ENDPOINT!,
 };
 
 const HomePage = () => {
@@ -15,13 +15,14 @@ const HomePage = () => {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    console.log("OAuth2Callback useEffect triggered on /");
-
     if (typeof window !== "undefined") {
       const urlParams = new URLSearchParams(window.location.search);
       const authCode = urlParams.get("code");
 
-      if (authCode) {
+      if (!authCode) {
+        router.push("/login");
+      } else {
+        console.log("OAuth2Callback useEffect triggered on /");
         const codeVerifier = localStorage.getItem("code_verifier");
 
         if (!codeVerifier) {
@@ -31,12 +32,9 @@ const HomePage = () => {
         }
 
         fetchAccessToken(authCode, codeVerifier);
-      } else {
-        setError("Authorization code not found.");
-        setLoading(false);
       }
     }
-  }, []);
+  }, [router]);
 
   const fetchAccessToken = async (code: string, codeVerifier: string) => {
     try {
@@ -61,7 +59,6 @@ const HomePage = () => {
       const data = await response.json();
       localStorage.setItem("access_token", data.access_token);
 
-      // Redirect after successful login
       router.push("/search");
     } catch (err) {
       setError("Failed to exchange token.");

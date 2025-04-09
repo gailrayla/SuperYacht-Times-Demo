@@ -4,10 +4,11 @@ import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { generatePKCE } from "../lib/utils/pkceUtils";
 
-const CLIENT_ID = "MsdFcFDwweoUf5XgIKIApO6VZgkQ6omLujLV7f3zM5o";
-const REDIRECT_URI = "http://localhost:3000"; // Must match the registered redirect URI exactly
+// Use environment variables
+const CLIENT_ID = process.env.NEXT_PUBLIC_CLIENT_ID!;
+const REDIRECT_URI = process.env.NEXT_PUBLIC_REDIRECT_URI!;
 const OAUTH_PARAMS = {
-  authorizationEndpoint: "https://www.superyachttimes.com/oauth/authorize",
+  authorizationEndpoint: process.env.NEXT_PUBLIC_OAUTH_AUTHORIZATION_ENDPOINT!,
   scopes: ["API"],
 };
 
@@ -31,7 +32,7 @@ const LoginPage = () => {
           localStorage.setItem("code_verifier", codeVerifier);
           console.log("Stored codeVerifier in localStorage");
 
-          // Construct the authorization URL using the properly encoded constant
+          // Construct the authorization URL using the environment variables
           const authUrl = `${
             OAUTH_PARAMS.authorizationEndpoint
           }?client_id=${CLIENT_ID}&redirect_uri=${encodeURIComponent(
