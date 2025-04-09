@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { generatePKCE } from "../lib/utils/pkceUtils";
 
 const CLIENT_ID = "MsdFcFDwweoUf5XgIKIApO6VZgkQ6omLujLV7f3zM5o";
-const REDIRECT_URI = "http://localhost:3000/oauth2/callback"; // Ensure this matches the redirect URI in OAuth settings
+const REDIRECT_URI = "http://localhost:3000"; // Must match the registered redirect URI exactly
 const OAUTH_PARAMS = {
   authorizationEndpoint: "https://www.superyachttimes.com/oauth/authorize",
   scopes: ["API"],
@@ -15,37 +15,46 @@ const LoginPage = () => {
   const router = useRouter();
 
   useEffect(() => {
-    const initiateLogin = async () => {
-      try {
-        // Generate PKCE code verifier and challenge
-        const { codeVerifier, codeChallenge } = await generatePKCE();
-        console.log("Generated codeVerifier:", codeVerifier);
-        console.log("Generated codeChallenge:", codeChallenge);
+    if (typeof window !== "undefined") {
+      console.log("Running in the browser environment");
 
-        // Store the codeVerifier in localStorage
-        localStorage.setItem("code_verifier", codeVerifier);
-        console.log("Stored codeVerifier in localStorage");
+      const initiateLogin = async () => {
+        try {
+          console.log("Starting OAuth2 login flow");
 
-        const encodedRedirectUri = encodeURIComponent(REDIRECT_URI);
-        console.log("Encoded Redirect URI:", encodedRedirectUri);
+          // Generate PKCE code verifier and challenge
+          const { codeVerifier, codeChallenge } = await generatePKCE();
+          console.log("Generated codeVerifier:", codeVerifier);
+          console.log("Generated codeChallenge:", codeChallenge);
 
-        // Construct the authorization URL
-        const authUrl = `${
-          OAUTH_PARAMS.authorizationEndpoint
-        }?client_id=${CLIENT_ID}&redirect_uri=${encodedRedirectUri}&response_type=code&scope=${OAUTH_PARAMS.scopes.join(
-          " "
-        )}&code_challenge=${codeChallenge}&code_challenge_method=S256`;
+          // Store the codeVerifier in localStorage
+          localStorage.setItem("code_verifier", codeVerifier);
+          console.log("Stored codeVerifier in localStorage");
 
-        console.log("Authorization URL:", authUrl);
+          // Construct the authorization URL using the properly encoded constant
+          const authUrl = `${
+            OAUTH_PARAMS.authorizationEndpoint
+          }?client_id=${CLIENT_ID}&redirect_uri=${encodeURIComponent(
+            REDIRECT_URI
+          )}&response_type=code&scope=${OAUTH_PARAMS.scopes.join(
+            " "
+          )}&code_challenge=${codeChallenge}&code_challenge_method=S256`;
 
-        // Redirect to the authorization URL
-        window.location.href = authUrl;
-      } catch (error) {
-        console.error("Error during PKCE generation or OAuth flow:", error);
-      }
-    };
+          console.log("Authorization URL:", authUrl);
 
-    initiateLogin();
+          // Redirect to the authorization URL
+          window.location.href = authUrl;
+        } catch (error) {
+          console.error("Error during PKCE generation or OAuth flow:", error);
+        }
+      };
+
+      initiateLogin();
+    } else {
+      console.error(
+        "Window is not defined, running in server-side environment"
+      );
+    }
   }, []);
 
   return (

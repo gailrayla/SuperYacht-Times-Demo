@@ -1,8 +1,10 @@
+"use client";
+
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter } from "next/navigation"; // Using next/navigation for routing
 
 const CLIENT_ID = "MsdFcFDwweoUf5XgIKIApO6VZgkQ6omLujLV7f3zM5o";
-const REDIRECT_URI = "http://localhost:3000/oauth2/callback";
+const REDIRECT_URI = "http://localhost:3000"; // Ensure this matches the registered redirect URI
 const OAUTH_PARAMS = {
   tokenEndpoint: "https://www.superyachttimes.com/oauth/token",
 };
@@ -13,25 +15,37 @@ const OAuth2Callback = () => {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const urlParams = new URLSearchParams(window.location.search);
-    const authCode = urlParams.get("code");
+    console.log("OAuth2Callback useEffect triggered");
 
-    console.log("Received Authorization Code:", authCode);
+    // Check if we're running in the client-side environment
+    if (typeof window !== "undefined") {
+      console.log("Running in the browser environment");
 
-    if (authCode) {
-      const codeVerifier = localStorage.getItem("code_verifier");
-      console.log("Retrieved codeVerifier from localStorage:", codeVerifier);
+      // Extract query parameters
+      const urlParams = new URLSearchParams(window.location.search);
+      const authCode = urlParams.get("code");
 
-      if (!codeVerifier) {
-        setError("Code verifier not found.");
+      console.log("Received Authorization Code:", authCode);
+
+      if (authCode) {
+        const codeVerifier = localStorage.getItem("code_verifier");
+        console.log("Retrieved codeVerifier from localStorage:", codeVerifier);
+
+        if (!codeVerifier) {
+          setError("Code verifier not found.");
+          setLoading(false);
+          return;
+        }
+
+        fetchAccessToken(authCode, codeVerifier);
+      } else {
+        setError("Authorization code not found.");
         setLoading(false);
-        return;
       }
-
-      fetchAccessToken(authCode, codeVerifier);
     } else {
-      setError("Authorization code not found.");
-      setLoading(false);
+      console.error(
+        "Window is not defined, running in server-side environment"
+      );
     }
   }, []);
 
