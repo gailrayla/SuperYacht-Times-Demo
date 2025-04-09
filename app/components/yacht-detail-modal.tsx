@@ -31,6 +31,7 @@ const YachtDetailModal = ({ isOpen, onClose, yacht }: any) => {
           }
         );
         const data = await response.json();
+        console.log("Fetched positions:", data); // Add this log
         setPositions(data);
       };
 

@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import dynamic from "next/dynamic";
 
 const MapContainerWithNoSSR = dynamic(
@@ -20,6 +21,10 @@ const PopupWithNoSSR = dynamic(
 import "leaflet/dist/leaflet.css";
 
 const MapTab = ({ positions }: { positions: any[] }) => {
+  if (!Array.isArray(positions) || positions.length === 0) {
+    return <div>No positions available</div>;
+  }
+
   return (
     <div>
       <h3 className="text-xl font-semibold">Map View</h3>
